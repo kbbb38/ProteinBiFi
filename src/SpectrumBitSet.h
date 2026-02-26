@@ -19,6 +19,9 @@ class SpectrumBitSet
 
         void loadBitSet(const std::string& path);
 
+        const std::vector<uint64_t>& bitset() const { return bitset_; }
+        
+
     private:
         const float resolution_;
         std::vector<uint64_t> bitset_;
