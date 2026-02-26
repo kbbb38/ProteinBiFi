@@ -11,8 +11,12 @@ SpectrumBitSet::SpectrumBitSet(const float resolution) : resolution_(resolution)
     bitset_.resize(vector_size);
 }
 
-void SpectrumBitSet::loadFromFile(const std::string& path)
+/*
+    Load the spectral library file into a bitset.
+*/
+void SpectrumBitSet::loadBitSet(const std::string& path)
 {
+    std::cout << "Loading file: " << '"' << path << '"' << std::endl;
     std::ifstream f(path);
     std::string buffer;
 
@@ -31,14 +35,12 @@ void SpectrumBitSet::loadFromFile(const std::string& path)
         }
     }
 
-    for (auto i : bitset_)
-    {
-        std::cout << i << std::endl;
-    }
-
     f.close();
 }
 
+/*
+    Reads next entry in msp file into a buffer
+*/
 bool SpectrumBitSet::readEntryIntoBuffer(std::ifstream& f, std::string& buffer) const
 {
     buffer.clear();
@@ -65,6 +67,9 @@ bool SpectrumBitSet::readEntryIntoBuffer(std::ifstream& f, std::string& buffer) 
     return true;
 }
 
+/*
+    Read the peaks from Buffer into Spectrum
+*/
 std::vector<float> SpectrumBitSet::readPeaksFromBuffer(const std::string& buffer) const
 {
     std::string line, value;

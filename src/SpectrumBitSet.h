@@ -17,7 +17,7 @@ class SpectrumBitSet
         SpectrumBitSet(SpectrumBitSet&& other) = default;
         SpectrumBitSet& operator=(SpectrumBitSet&& other) = default;
 
-        void loadFromFile(const std::string& path);
+        void loadBitSet(const std::string& path);
 
     private:
         const float resolution_;
