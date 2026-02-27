@@ -8,10 +8,9 @@
 #include <iostream>
 #include <bit>
 
-//tmp
-#include <bitset>
-
-ExperimentalBitSets::ExperimentalBitSets(const float resolution) : resolution_(resolution) { }
+ExperimentalBitSets::ExperimentalBitSets(const AppConfig& config) : config_(config)
+{ 
+}
 
 void ExperimentalBitSets::loadExperimentalBitSets(const std::string& path_string)
 {
@@ -55,22 +54,22 @@ void ExperimentalBitSets::loadFromDirectory(const std::string& path_string)
     }
 }
 
-void ExperimentalBitSets::loadSingleFile(const std::string& path)
+void ExperimentalBitSets::loadSingleFile(const std::string& path_string)
 {
-    std::cout << "Loading file: " << '"' << path << '"' << std::endl;
+    std::cout << "Loading file: " << '"' << path_string << '"' << std::endl;
 
-    std::ifstream f(path);
+    std::ifstream f(path_string);
     std::string buffer;
 
     std::vector<float> tmp_peaks;
     while (readEntryIntoBuffer(f, buffer))
     {
         tmp_peaks = readPeaksFromBuffer(buffer);
-        std::vector<uint64_t> tmp_bitset(int(((BIN_MAX_MZ - BIN_MIN_MZ) / resolution_) / 64) + 1);
+        std::vector<uint64_t> tmp_bitset(int(((BIN_MAX_MZ - BIN_MIN_MZ) / config_.resolution) / 64) + 1);
         for (float p : tmp_peaks)
         {
             if (p < BIN_MIN_MZ || p > BIN_MAX_MZ) continue;
-            int index = int((p - BIN_MIN_MZ) / resolution_);
+            int index = int((p - BIN_MIN_MZ) / config_.resolution);
             int word_index = index / 64;
             int bit_index = index % 64;
             tmp_bitset[word_index] |= (1ULL << bit_index);
@@ -93,9 +92,9 @@ bool ExperimentalBitSets::readEntryIntoBuffer(std::ifstream& f, std::string& buf
 
     while(getline(f, line))
     {
-        if (line == "END IONS") break;
         buffer += line;
         buffer += "\n";
+        if (line == "END IONS") break;
     }
     return true;
 }
@@ -111,7 +110,7 @@ std::vector<float> ExperimentalBitSets::readPeaksFromBuffer(const std::string& b
     }
 
     std::vector<float> tmp_peaks;
-    while(getline(ss, value, ' '))
+    while(getline(ss, value, ' ') && value != "END")
     {
         float peak = stof(value);
         tmp_peaks.push_back(peak);
@@ -127,7 +126,7 @@ void ExperimentalBitSets::filterExperimentalSpectra(const SpectrumBitSet& sbs)
 
     for(uint i = 0; i < experimental_bitsets_.size(); ++i)
     {
-        if (popCountBitsets(library_bitset, experimental_bitsets_[i]))
+        if (popCountBitsets(library_bitset, experimental_bitsets_[i], config_.cutoff))
         {
             post_filter_indicies_.push_back(i);
         }
@@ -136,7 +135,7 @@ void ExperimentalBitSets::filterExperimentalSpectra(const SpectrumBitSet& sbs)
     std::cout << post_filter_indicies_.size() << " spectras remaining" << std::endl;
 }   
 
-bool ExperimentalBitSets::popCountBitsets(const std::vector<uint64_t>& lib, const std::vector<uint64_t>& exp) const
+bool ExperimentalBitSets::popCountBitsets(const std::vector<uint64_t>& lib, const std::vector<uint64_t>& exp, const double cutoff) const
 {
     uint64_t exp_bit_count = 0;
     uint64_t intersection_bit_count = 0;
@@ -146,7 +145,34 @@ bool ExperimentalBitSets::popCountBitsets(const std::vector<uint64_t>& lib, cons
         uint64_t exp_bits = exp[i];
         uint64_t lib_bits = lib[i];
 
-        if ((exp_bits & lib_bits) != exp_bits) return false;
+        exp_bit_count += std::popcount(exp_bits);
+        intersection_bit_count += std::popcount(exp_bits & lib_bits);
     }
-    return true;
+
+    double overlap_coefficient = 0.0;
+    if (exp_bit_count != 0) overlap_coefficient = static_cast<double>(intersection_bit_count) / exp_bit_count;
+
+    if (overlap_coefficient > cutoff) return true;
+    return false;
+}
+
+void ExperimentalBitSets::saveFilteredExperimentalSpectras(const std::string& path_string)
+{
+    std::filesystem::path path(path_string);
+    if (std::filesystem::exists(path))
+    {
+        if(std::filesystem::is_directory(path))
+        {
+            saveDirectory(path_string);
+        }
+        else if (std::filesystem::is_regular_file(path))
+        {
+            saveSingleFile(path_string);
+        }
+    }
+}
+
+void ExperimetalBitSets::saveSingleFile(const std::string& path_string)
+{
+    
 }
