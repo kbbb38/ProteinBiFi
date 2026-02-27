@@ -36,7 +36,7 @@ int main(int argc, char** argv)
     sbs.loadBitSet(config.library_path);
     auto stop_lib = std::chrono::high_resolution_clock::now();
     auto durration_lib = duration_cast<std::chrono::seconds>(stop_lib - start_lib);
-    std::cout << "...Done! Took " << durration_lib.count() << " seconds" << std::endl;;
+    std::cout << "...Done! Took " << durration_lib.count() << " seconds!" << std::endl;;
     std::cout << "═════════════════════" << std::endl;
 
     std::cout << "-> Loading and filtering experimental spectras..." << std::endl;
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     ebs.loadExperimentalBitSets(config.experimental_path);
     stop_lib = std::chrono::high_resolution_clock::now();
     durration_lib = duration_cast<std::chrono::seconds>(stop_lib - start_lib);
-    std::cout << "...Done! Took " << durration_lib.count() << " seconds" << std::endl;;
+    std::cout << "...Done! Took " << durration_lib.count() << " seconds!" << std::endl;;
     std::cout << "═════════════════════" << std::endl;
 
     std::cout << "\033[1;32m"; 

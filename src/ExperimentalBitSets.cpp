@@ -90,7 +90,7 @@ void ExperimentalBitSets::loadSingleFile(const std::string& path_string)
         }
     }
     std::cout << "  " << count_files << " spectras loaded; " << count_filtered << " spectras filtered; " << count_files - count_filtered << " spectras remaining" << std::endl;
-    std::cout << "Remaining spectras written to " << path.string() << std::endl;
+    std::cout << "  Remaining spectras written to: " << path.string() << std::endl;
 }
 
 bool ExperimentalBitSets::readEntryIntoBuffer(std::ifstream& f, std::string& buffer) const
