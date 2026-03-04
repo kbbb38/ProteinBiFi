@@ -4,6 +4,8 @@
 #include<vector>
 #include<string>
 
+#include "Config.h"
+
 class SpectrumBitSet 
 {
     public:
@@ -17,15 +19,28 @@ class SpectrumBitSet
         SpectrumBitSet(SpectrumBitSet&& other) = default;
         SpectrumBitSet& operator=(SpectrumBitSet&& other) = default;
 
-        void loadBitSet(const std::string& path);
+        void loadFile(const std::string& path);
+        void filterSpectra();
+        int filtered() { return total_filtered_; };
 
         const std::vector<uint64_t>& bitset() const { return bitset_; }
         
-
     private:
-        const float resolution_;
         std::vector<uint64_t> bitset_;
+        int total_filtered_ = 0;
+        AppConfig config_;
 
-        bool readEntryIntoBuffer(std::ifstream& f, std::string& buffer) const;
-        std::vector<float> readPeaksFromBuffer(const std::string& buffer) const;
+        void loadFromDirectory(const std::string& path_string);
+        void loadSingleFile(const std::string& path_string);
+
+        bool readEntryIntoBufferExp(std::ifstream& f, std::string& buffer) const;
+        std::vector<float> readPeaksFromBufferExp(const std::string& buffer) const;
+
+        bool readEntryIntoBufferLib(std::ifstream& f, std::string& buffer) const;
+        std::vector<float> readPeaksFromBufferLib(const std::string& buffer) const;
+
+        void addPeaksToBitset(const std::vector<float>& tmp_peaks);
+        std::vector<uint64_t> readPeaksIntoBitset(const std::vector<float>& tmp_peak) const;
+
+        bool popCountBitsets(const std::vector<uint64_t>& tmp_bitset) const;
 };
