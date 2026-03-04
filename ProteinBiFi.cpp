@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     app.add_option("-o, --out", config.output_path, "Output directory")->required();
     app.add_option("-r, --resolution", config.resolution, "Resolution fo the bit sets")->required();
     app.add_option("-c, --cutoff", config.cutoff, "Cutoff for overlap coefficient during filtering")->required();
-    app.add_option("-f, --filter_experimental", config.filter_experimental, "Filter experimental spectras instead of spectras in the seach library");
+    app.add_flag("-f, --filter_experimental", config.filter_experimental, "Filter experimental spectras instead of spectras in the seach library");
 
     app.parse(argc, argv);
 
@@ -33,11 +33,11 @@ int main(int argc, char** argv)
 
     std::cout << "-> Constructing spectrum bit set..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    SpectrumBitSet sbs(config.resolution);
+    SpectrumBitSet sbs(config);
     config.filter_experimental ? sbs.loadFile(config.library_path) : sbs.loadFile(config.experimental_path);
     auto stop = std::chrono::high_resolution_clock::now();
     auto durration = duration_cast<std::chrono::seconds>(stop - start);
-    std::cout << "...Done! Took " << durration.count() << " seconds!" << std::endl;;
+    std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << sbs.loaded() << " spectras!" <<std::endl;
     std::cout << " " << std::endl;
 
     std::cout << "-> Loading and filtering spectras..." << std::endl;
@@ -45,11 +45,11 @@ int main(int argc, char** argv)
     config.filter_experimental ? sbs.loadFile(config.experimental_path) : sbs.loadFile(config.library_path);
     stop = std::chrono::high_resolution_clock::now();
     durration = duration_cast<std::chrono::seconds>(stop - start);
-    std::cout << "...Done! Took " << durration.count() << " seconds!" << std::endl;;
+    std::cout << "-> Done! Took " << durration.count() << " seconds! Filtered" << sbs.filtered() << " spectras!" << std::endl;
     std::cout << " " << std::endl;
 
     std::cout << "\033[1;32m"; 
-    std::cout << "Run completed, was able to filter " << sbs.filtered() << " spectras!" << std::endl;
+    std::cout << "Run completed! Thank you for using ProteinBiFi!"<< std::endl;
     std::cout << "\033[0m";
     return 0;
 }

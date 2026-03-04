@@ -9,7 +9,7 @@
 class SpectrumBitSet 
 {
     public:
-        explicit SpectrumBitSet(const float resolution);
+        explicit SpectrumBitSet(AppConfig config);
 
         ~SpectrumBitSet() = default;
 
@@ -22,13 +22,16 @@ class SpectrumBitSet
         void loadFile(const std::string& path);
         void filterSpectra();
         int filtered() { return total_filtered_; };
+        int loaded() {return total_loaded_; }
 
         const std::vector<uint64_t>& bitset() const { return bitset_; }
         
     private:
         std::vector<uint64_t> bitset_;
         int total_filtered_ = 0;
-        AppConfig config_;
+        int total_loaded_ = 0;
+        const AppConfig config_;
+        bool bitset_complete_ = 0;
 
         void loadFromDirectory(const std::string& path_string);
         void loadSingleFile(const std::string& path_string);

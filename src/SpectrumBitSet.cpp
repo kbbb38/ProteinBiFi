@@ -9,6 +9,10 @@
 
 namespace fs = std::filesystem;
 
+SpectrumBitSet::SpectrumBitSet(AppConfig config) : config_(config)
+{
+}
+
 void SpectrumBitSet::loadFile(const std::string& path_string)
 {
     const fs::path path(path_string);
@@ -24,6 +28,8 @@ void SpectrumBitSet::loadFile(const std::string& path_string)
             loadSingleFile(path_string);
         }
     }
+
+    bitset_complete_ = true;
 }
 
 void SpectrumBitSet::loadFromDirectory(const std::string& path_string)
@@ -57,15 +63,20 @@ void SpectrumBitSet::loadSingleFile(const std::string& path_string)
     std::string buffer;
 
     std::vector<float> tmp_peaks;
-    if (bitset_.empty())
+    if (!bitset_complete_)
     {
-        if (config_.filter_experimental)
+        bitset_.resize(int(((BIN_MAX_MZ - BIN_MIN_MZ) / config_.resolution) / 64) + 1);
+        int load_count = 0;
+
+        if (!config_.filter_experimental)
         {
             while (readEntryIntoBufferExp(f, buffer))
             {
                 tmp_peaks = readPeaksFromBufferExp(buffer);
                 addPeaksToBitset(tmp_peaks);
+                load_count += 1;
             }
+            std::cout << "  Loaded " << load_count << " spectras" << std::endl;
         }
         else
         {
@@ -73,8 +84,11 @@ void SpectrumBitSet::loadSingleFile(const std::string& path_string)
             {
                 tmp_peaks = readPeaksFromBufferLib(buffer);
                 addPeaksToBitset(tmp_peaks);
+                load_count += 1;
             }
+            std::cout << "  Loaded " << load_count << " spectras" << std::endl;
         }
+        total_loaded_ += load_count;
     }
     else
     {
@@ -90,14 +104,14 @@ void SpectrumBitSet::loadSingleFile(const std::string& path_string)
         {
             while (readEntryIntoBufferLib(f, buffer))
             {
-                file_count + 1;
+                file_count += 1;
                 tmp_peaks = readPeaksFromBufferLib(buffer);
                 tmp_bitset = readPeaksIntoBitset(tmp_peaks);
 
                 if(popCountBitsets(tmp_bitset))
                 {
                     o << buffer;
-                    nfiltered_count;
+                    nfiltered_count += 1;
                 }
             }
             total_filtered_ += file_count - nfiltered_count;
@@ -108,14 +122,14 @@ void SpectrumBitSet::loadSingleFile(const std::string& path_string)
         {
             while (readEntryIntoBufferExp(f, buffer))
             {
-                file_count + 1;
+                file_count += 1;
                 tmp_peaks = readPeaksFromBufferExp(buffer);
                 tmp_bitset = readPeaksIntoBitset(tmp_peaks);
 
                 if(popCountBitsets(tmp_bitset))
                 {
                     o << buffer;
-                    nfiltered_count;
+                    nfiltered_count += 1;
                 }
             }
             total_filtered_ += file_count - nfiltered_count;
@@ -145,7 +159,7 @@ bool SpectrumBitSet::readEntryIntoBufferExp(std::ifstream& f, std::string& buffe
     return true;
 }
 
-std::vector<float> SpectrumBitSet::readPeaksFromBufferLib(const std::string& buffer) const
+std::vector<float> SpectrumBitSet::readPeaksFromBufferExp(const std::string& buffer) const
 {
     std::string line, value;
     std::stringstream ss(buffer);
@@ -259,6 +273,7 @@ bool SpectrumBitSet::popCountBitsets(const std::vector<uint64_t>& tmp_bitset) co
     }
 
     double overlap_coefficient = 0.0;
+    std::cout << overlap_coefficient << " ";
     if (exp_bit_count != 0) overlap_coefficient = static_cast<double>(intersection_bit_count) / exp_bit_count;
 
     if (overlap_coefficient > config_.cutoff) return true;
