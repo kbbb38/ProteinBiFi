@@ -144,7 +144,6 @@ bool SpectrumBitSet::readEntryIntoBufferMsp(std::ifstream& f, std::string& buffe
 void SpectrumBitSet::matchSpectras()
 {
     size_t total = experimental_spectra_.size();
-    size_t current = 0;
     for (ExperimentalSpectra& e_spec : experimental_spectra_)
     {
         size_t index_count = 0;
@@ -162,9 +161,6 @@ void SpectrumBitSet::matchSpectras()
         }
         library_spectra_[highest_tanimoto_id].setIfMatch();
         e_spec.setMatch(Match(highest_tanimoto, 0, library_spectra_[highest_tanimoto_id].getPeptide(), highest_tanimoto_id));
-        ++current;
-        int percent = (current * 100) / total;
-        std::cout << "\r[" << std::string(percent / 2, '=') << std::string(50 - percent / 2, ' ') << "] " << percent << "% (" << current << "/" << total << ")" << std::flush;
     }
 }
 
