@@ -31,21 +31,37 @@ int main(int argc, char** argv)
     std::cout << "╚════════════════════╝" << std::endl;
     std::cout << "\033[0m";
 
-    std::cout << "-> Constructing spectrum bit set..." << std::endl;
+    std::cout << "-> Loading experimental spectras..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     SpectrumBitSet sbs(config);
-    config.filter_experimental ? sbs.loadFile(config.library_path) : sbs.loadFile(config.experimental_path);
+    sbs.loadFile(config.experimental_path);
     auto stop = std::chrono::high_resolution_clock::now();
     auto durration = duration_cast<std::chrono::seconds>(stop - start);
     std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << sbs.loaded() << " spectras!" <<std::endl;
     std::cout << " " << std::endl;
 
-    std::cout << "-> Loading and filtering spectras..." << std::endl;
+    std::cout << "-> Loading library spectras..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
-    config.filter_experimental ? sbs.loadFile(config.experimental_path) : sbs.loadFile(config.library_path);
+    sbs.loadFile(config.library_path);
     stop = std::chrono::high_resolution_clock::now();
     durration = duration_cast<std::chrono::seconds>(stop - start);
-    std::cout << "-> Done! Took " << durration.count() << " seconds! Filtered" << sbs.filtered() << " spectras!" << std::endl;
+    std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << sbs.loaded() << " spectras!" <<std::endl;
+    std::cout << " " << std::endl;
+
+    std::cout << "-> Finding matches..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    sbs.matchSpectras();
+    stop = std::chrono::high_resolution_clock::now();
+    durration = duration_cast<std::chrono::seconds>(stop - start);
+    std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << std::endl;
+    std::cout << " " << std::endl;
+
+    std::cout << "-> Writing output..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    sbs.writeOutput(config.output_path);
+    stop = std::chrono::high_resolution_clock::now();
+    durration = duration_cast<std::chrono::seconds>(stop - start);
+    std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << std::endl;
     std::cout << " " << std::endl;
 
     std::cout << "\033[1;32m"; 

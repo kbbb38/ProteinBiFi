@@ -19,7 +19,10 @@ add_executable(ProteinBiFi
     ProteinBiFi.cpp
     src/SpectrumBitSet.h
     src/SpectrumBitSet.cpp
-    src/ExperimentalBitSets.h
-    src/ExperimentalBitSets.cpp
+    src/ExperimentalSpectra.h
+    src/ExperimentalSpectra.cpp
+    src/LibrarySpectra.h
+    src/LibrarySpectra.cpp
+    src/Config.h
     src/Constants.h
 )
