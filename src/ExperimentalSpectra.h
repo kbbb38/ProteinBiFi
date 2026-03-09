@@ -23,12 +23,14 @@ private:
 
     std::string name_;
     std::vector<uint64_t> bitset_;
+    std::vector<float> binned_intensities_; 
     u_int64_t bit_count_;
 
     Match match_;
 
     void createBitSet();
-
+    void binIntensities();
+    
 public:
     ExperimentalSpectra() = default;
     ExperimentalSpectra(const std::string& b, const AppConfig& config);
@@ -37,6 +39,8 @@ public:
     const std::vector<uint64_t>& getBitset() const { return bitset_; }
     const uint64_t getBitCount() const { return bit_count_; }
     const Match getMatch() const { return match_; }
+    const std::vector<float>& getIntensities() const { return intensities_; }
+    const std::vector<float>& getPeakPositions() const { return peak_positions_; }
 
     void setName(const std::string& n) { name_ = n; }
     void setBitset(const std::vector<uint64_t>& bs) { bitset_ = bs; }

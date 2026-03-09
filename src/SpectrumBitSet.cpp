@@ -147,20 +147,24 @@ void SpectrumBitSet::matchSpectras()
     for (ExperimentalSpectra& e_spec : experimental_spectra_)
     {
         size_t index_count = 0;
-        float highest_tanimoto = 0;
-        int highest_tanimoto_id = 0;
+        float highest = 0;
+        int highest_id = 0;
         for (LibrarySpectra& l_spec : library_spectra_)
         {
-            float tanimoto = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-            if (tanimoto > highest_tanimoto)
+            float score = calculateOverlapCoefficient(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
+            if (score > highest)
             {
-                highest_tanimoto = tanimoto;
-                highest_tanimoto_id = index_count;
+                highest = score;
+                highest_id = index_count;
             }
             ++index_count;
         }
-        library_spectra_[highest_tanimoto_id].setIfMatch();
-        e_spec.setMatch(Match(highest_tanimoto, 0, library_spectra_[highest_tanimoto_id].getPeptide(), highest_tanimoto_id));
+        library_spectra_[highest_id].setIfMatch();
+        e_spec.setMatch(Match(calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), library_spectra_[highest_id].getBitset(), library_spectra_[highest_id].getBitCount()), 
+                                0,
+                                highest,
+                                library_spectra_[highest_id].getPeptide(), 
+                                highest_id));
     }
 }
 
@@ -183,10 +187,26 @@ float SpectrumBitSet::calculateTanimotoScore(const std::vector<uint64_t>& e_spec
     return float(count_intersection) / float(count_union);
 }
 
-/* float SpectrumBitSet::calculateDotScore(const std::vector<uint64_t>& e_spec, const std::vector<uint64_t>& l_spec)
+float SpectrumBitSet::calculateOverlapCoefficient(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const
+{
+    uint64_t count_intersection = 0;
+    const uint64_t* e_ptr = e_spec.data();
+    const uint64_t* l_ptr = l_spec.data();
+    const size_t size = e_spec.size();
+
+    for(size_t i = 0; i < size; ++i)
+    {
+        count_intersection += std::popcount(e_ptr[i] & l_ptr[i]);
+    }
+
+    if (e_count == 0 || l_count == 0) return 0.0;
+    return float(count_intersection) / float(e_count);
+}
+
+float SpectrumBitSet::calculateDotProductScore(const std::vector<float>& e_spec, const std::vector<float>& e_intensities, const std::vector<float>& l_spec, const std::vector<float>& l_intensities) const
 {
 
-} */
+}
 
 void SpectrumBitSet::writeOutput(const std::string& path_string) const
 {
@@ -194,7 +214,7 @@ void SpectrumBitSet::writeOutput(const std::string& path_string) const
     for (const ExperimentalSpectra& es : experimental_spectra_)
     {
         Match m = es.getMatch();
-        f << es.getName() << "\t" << m.peptide_m << "\t" << m.tanimoto_m << "\t" << m.dot_product_m << "\n"; 
+        f << es.getName() << "\t" << m.peptide_m << "\t" << m.overlap_coefficient_m << "\t" << m.tanimoto_m << "\t" << m.dot_product_m << "\n"; 
     }
     f.close();
 }

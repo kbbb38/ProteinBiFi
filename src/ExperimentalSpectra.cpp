@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <bit>
+#include <cmath>
 
 ExperimentalSpectra::ExperimentalSpectra(const std::string& b, const AppConfig& config) : config_(config)
 {
@@ -14,7 +15,6 @@ ExperimentalSpectra::ExperimentalSpectra(const std::string& b, const AppConfig& 
     getline(ss, line);
     getline(ss, line);
 
-    size_t colon_pos = line.find(':');
     value = line.substr(6, std::string::npos);
     name_ = value;
 
@@ -47,5 +47,28 @@ void ExperimentalSpectra::createBitSet()
     for(uint64_t subset : bitset_)
     {
         bit_count_ += std::popcount(subset);
+    }
+}
+
+void ExperimentalSpectra::binIntensities()
+{
+    size_t num_bins = bitset_.size() * 64;
+    binned_intensities_.resize(num_bins);
+
+    std::vector<double> bin_squares(num_bins, 0.0);
+    for (size_t i = 0; i < peak_positions_.size(); ++i) 
+    {
+        float intensity = intensities_[i];
+
+        size_t bin_index = size_t(peak_positions_[i]; - BIN_MIN_MZ / config_.resolution);
+
+        if (bin_index < num_bins) {
+            
+            bin_squares[bin_index] += (float(intensity) * intensity);
+        }
+    }
+
+    for (size_t i = 0; i < num_bins; ++i) {
+        binned_intensities_[i] = static_cast<float>(std::sqrt(bin_squares[i]));
     }
 }

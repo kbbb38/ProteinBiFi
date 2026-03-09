@@ -12,12 +12,15 @@ class LibrarySpectra {
         std::vector<float> peak_positions_;
         std::vector<float> intensities_;
 
-        std::string peptide_;
         std::vector<uint64_t> bitset_;
+        std::vector<float> binned_intensities_; 
+
+        std::string peptide_;
         u_int64_t bit_count_;
         bool is_a_match_ = false;
 
         void createBitSet();
+        void binIntensities();
 
     public:
         LibrarySpectra() = default;
@@ -27,6 +30,8 @@ class LibrarySpectra {
         const std::vector<uint64_t>& getBitset() const { return bitset_; }
         const uint64_t getBitCount() const { return bit_count_; }
         const bool getIfMatch() const { return is_a_match_; }
+        const std::vector<float>& getIntensities() const { return intensities_; }
+        const std::vector<float>& getPeakPositions() const { return peak_positions_; }
 
         void setPeptide(const std::string& n) { peptide_ = n; }
         void setBitset(const std::vector<uint64_t>& bs) { bitset_ = bs; }
