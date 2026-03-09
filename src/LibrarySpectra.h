@@ -9,12 +9,15 @@ class LibrarySpectra {
     private:
         AppConfig config_;
 
+        std::vector<float> peak_positions_;
+        std::vector<float> intensities_;
+
         std::string peptide_;
         std::vector<uint64_t> bitset_;
         u_int64_t bit_count_;
         bool is_a_match_ = false;
 
-        void createBitSet(const std::vector<float>& tmp_peaks);
+        void createBitSet();
 
     public:
         LibrarySpectra() = default;

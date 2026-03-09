@@ -9,6 +9,7 @@ struct Match
 {
     float tanimoto_m;
     float dot_product_m;
+    float overlap_coefficient_m;
     std::string peptide_m;
     int id_m = 0;
 };
@@ -17,13 +18,16 @@ class ExperimentalSpectra {
 private:
     AppConfig config_;
 
+    std::vector<float> peak_positions_;
+    std::vector<float> intensities_;
+
     std::string name_;
     std::vector<uint64_t> bitset_;
     u_int64_t bit_count_;
 
     Match match_;
 
-    void createBitSet(const std::vector<float>& tmp_peaks);
+    void createBitSet();
 
 public:
     ExperimentalSpectra() = default;
