@@ -42,5 +42,5 @@ class SpectrumBitSet
 
         float calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const;
         float calculateOverlapCoefficient(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const;
-        float calculateDotProductScore(const std::vector<float>& e_spec, const std::vector<float>& e_intensities, const std::vector<float>& l_spec, const std::vector<float>& l_intensities) const;
+        float calculateDotProductScore(const std::vector<uint64_t>& e_spec, const std::vector<float>& e_intensities, const std::vector<uint64_t>& l_spec, const std::vector<float>& l_intensities) const;
 };

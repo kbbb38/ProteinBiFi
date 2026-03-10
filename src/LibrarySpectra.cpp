@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <bit>
+#include <cmath>
 
 #include <iostream>
 
@@ -60,7 +61,7 @@ void LibrarySpectra::createBitSet()
     }
 }
 
-void ExperimentalSpectra::binIntensities()
+void LibrarySpectra::binIntensities()
 {
     size_t num_bins = bitset_.size() * 64;
     binned_intensities_.resize(num_bins);
@@ -70,7 +71,7 @@ void ExperimentalSpectra::binIntensities()
     {
         float intensity = intensities_[i];
 
-        size_t bin_index = size_t(peak_positions_[i]; - BIN_MIN_MZ / config_.resolution);
+        size_t bin_index = size_t(peak_positions_[i] - BIN_MIN_MZ / config_.resolution);
 
         if (bin_index < num_bins) {
             

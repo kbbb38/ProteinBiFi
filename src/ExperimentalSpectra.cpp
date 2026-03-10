@@ -60,7 +60,7 @@ void ExperimentalSpectra::binIntensities()
     {
         float intensity = intensities_[i];
 
-        size_t bin_index = size_t(peak_positions_[i]; - BIN_MIN_MZ / config_.resolution);
+        size_t bin_index = size_t(peak_positions_[i] - BIN_MIN_MZ / config_.resolution);
 
         if (bin_index < num_bins) {
             

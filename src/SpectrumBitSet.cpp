@@ -161,7 +161,7 @@ void SpectrumBitSet::matchSpectras()
         }
         library_spectra_[highest_id].setIfMatch();
         e_spec.setMatch(Match(calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), library_spectra_[highest_id].getBitset(), library_spectra_[highest_id].getBitCount()), 
-                                0,
+                                calculateDotProductScore(e_spec.getBitset(), e_spec.getIntensities(), library_spectra_[highest_id].getBitset(), library_spectra_[highest_id].getIntensities()),
                                 highest,
                                 library_spectra_[highest_id].getPeptide(), 
                                 highest_id));
@@ -203,9 +203,25 @@ float SpectrumBitSet::calculateOverlapCoefficient(const std::vector<uint64_t>& e
     return float(count_intersection) / float(e_count);
 }
 
-float SpectrumBitSet::calculateDotProductScore(const std::vector<float>& e_spec, const std::vector<float>& e_intensities, const std::vector<float>& l_spec, const std::vector<float>& l_intensities) const
+float SpectrumBitSet::calculateDotProductScore(const std::vector<uint64_t>& e_spec, const std::vector<float>& e_intensities, const std::vector<uint64_t>& l_spec, const std::vector<float>& l_intensities) const
 {
+    float dot = 0.0;
+    for (size_t i = 0; i < e_spec.size(); ++i)
+    {
+        uint64_t overlap = e_spec[i] & l_spec[i];
 
+        while (overlap != 0)
+        {
+            size_t bit_pos = std::countl_zero(overlap);
+            size_t bin_index = (i * 64) + bit_pos;
+
+            dot += e_intensities[bin_index] * l_intensities[bin_index];
+
+            overlap &= ~(1ULL << bit_pos);
+        }
+    }
+
+    return dot;
 }
 
 void SpectrumBitSet::writeOutput(const std::string& path_string) const
