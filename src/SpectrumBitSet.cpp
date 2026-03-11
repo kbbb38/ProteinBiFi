@@ -343,7 +343,7 @@ void SpectrumBitSet::writeOutput(const std::string& path_string) const
     
     for (const ExperimentalSpectra& es : experimental_spectra_)
     {
-        std::cout << "START MATCHES" << "\n";
+        f << "START MATCHES" << "\n";
 
         Match m = es.getMatch();
         std::string spec_name = es.getName();
@@ -361,7 +361,7 @@ void SpectrumBitSet::writeOutput(const std::string& path_string) const
               << hit.dot_product_m << "\n";
         }
 
-        std::cout << "\n";
+        f << "\n";
         
         // Output top 5 Overlap matches
         for (size_t i = 0; i < m.hits_overlap.size(); ++i)
@@ -376,7 +376,7 @@ void SpectrumBitSet::writeOutput(const std::string& path_string) const
               << hit.dot_product_m << "\n";
         }
         
-        std::cout << "\n";
+        f << "\n";
 
         // Output top 5 Dot Product matches
         for (size_t i = 0; i < m.dot_product.size(); ++i)
@@ -390,7 +390,7 @@ void SpectrumBitSet::writeOutput(const std::string& path_string) const
               << hit.overlap_coefficient_m << "\t" 
               << hit.dot_product_m << "\n";
         }
-        std::cout << "End MATCHES" << "\n";
+        f << "End MATCHES" << "\n";
     }
     
     f.close();
