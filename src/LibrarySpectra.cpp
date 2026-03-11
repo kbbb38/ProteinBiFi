@@ -47,6 +47,8 @@ LibrarySpectra::LibrarySpectra(const std::string& b, const AppConfig& config) : 
 void LibrarySpectra::createBitSet()
 {
     bitset_.resize(int(((BIN_MAX_MZ - BIN_MIN_MZ) / config_.resolution) / 64) + 1);
+    bit_count_ = 0;
+    
     for (float p : peak_positions_)
     {
         if (p < BIN_MIN_MZ || p > BIN_MAX_MZ) continue;
@@ -71,7 +73,7 @@ void LibrarySpectra::binIntensities()
     {
         float intensity = intensities_[i];
 
-        size_t bin_index = size_t(peak_positions_[i] - BIN_MIN_MZ / config_.resolution);
+        size_t bin_index = size_t((peak_positions_[i] - BIN_MIN_MZ) / config_.resolution);
 
         if (bin_index < num_bins) {
             
@@ -79,7 +81,16 @@ void LibrarySpectra::binIntensities()
         }
     }
 
+    double total_sum_squares = 0.0;
+
     for (size_t i = 0; i < num_bins; ++i) {
         binned_intensities_[i] = static_cast<float>(std::sqrt(bin_squares[i]));
+        total_sum_squares += bin_squares[i];
+    }
+
+    float norm_factor = 1.0f / static_cast<float>(std::sqrt(total_sum_squares));
+    for (float& intensity : binned_intensities_) 
+    {
+        intensity *= norm_factor;
     }
 }

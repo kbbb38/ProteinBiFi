@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     sbs.matchSpectras();
     stop = std::chrono::high_resolution_clock::now();
     durration = duration_cast<std::chrono::seconds>(stop - start);
-    std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << std::endl;
+    std::cout << "-> Done! Took " << durration.count() << " seconds!" << std::endl;
     std::cout << " " << std::endl;
 
     std::cout << "-> Writing output..." << std::endl;
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     sbs.writeOutput(config.output_path);
     stop = std::chrono::high_resolution_clock::now();
     durration = duration_cast<std::chrono::seconds>(stop - start);
-    std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << std::endl;
+    std::cout << "-> Done! Took " << durration.count() << " seconds!" << std::endl;
     std::cout << " " << std::endl;
 
     std::cout << "\033[1;32m"; 

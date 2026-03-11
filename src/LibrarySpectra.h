@@ -30,7 +30,7 @@ class LibrarySpectra {
         const std::vector<uint64_t>& getBitset() const { return bitset_; }
         const uint64_t getBitCount() const { return bit_count_; }
         const bool getIfMatch() const { return is_a_match_; }
-        const std::vector<float>& getIntensities() const { return intensities_; }
+        const std::vector<float>& getIntensities() const { return binned_intensities_; }
         const std::vector<float>& getPeakPositions() const { return peak_positions_; }
 
         void setPeptide(const std::string& n) { peptide_ = n; }
