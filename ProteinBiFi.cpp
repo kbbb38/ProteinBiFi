@@ -20,7 +20,6 @@ int main(int argc, char** argv)
     app.add_option("-e, --experimental", config.experimental_path, "Path to experimental file or directory")->required();
     app.add_option("-o, --out", config.output_path, "Output directory")->required();
     app.add_option("-r, --resolution", config.resolution, "Resolution fo the bit sets")->required();
-    app.add_option("-c, --cutoff", config.cutoff, "Cutoff for overlap coefficient during filtering")->required();
     app.add_flag("-f, --filter_experimental", config.filter_experimental, "Filter experimental spectras instead of spectras in the seach library");
 
     app.parse(argc, argv);

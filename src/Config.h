@@ -9,5 +9,4 @@ struct AppConfig
     std::string experimental_path;
     std::string output_path;
     float resolution;
-    double cutoff;
 };

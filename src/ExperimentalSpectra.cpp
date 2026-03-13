@@ -22,7 +22,15 @@ ExperimentalSpectra::ExperimentalSpectra(const std::string& b, const AppConfig& 
 
     while (getline(ss, line))
     {
-        if (line.starts_with("CHARGE=")) break;
+        if (line.starts_with("PEPMASS="))
+        {
+            pepmass_ = stof(line.substr(8, std::string::npos));
+        }
+        if (line.starts_with("CHARGE="))
+        {
+            charge_ = stoi(line.substr(7,1));
+            break;
+        }
     }
 
     while(getline(ss, value, ' ') && value != "END")
@@ -33,6 +41,7 @@ ExperimentalSpectra::ExperimentalSpectra(const std::string& b, const AppConfig& 
     }
     
     createBitSet();
+    normalizeAndScaleIntensities();
     binIntensities();
 }
 
@@ -67,22 +76,30 @@ void ExperimentalSpectra::binIntensities()
 
         size_t bin_index = size_t((peak_positions_[i] - BIN_MIN_MZ) / config_.resolution);
 
-        if (bin_index < num_bins) {
-            
+        if (bin_index < num_bins)
+        {
             bin_squares[bin_index] += (float(intensity) * intensity);
         }
     }
 
-    double total_sum_squares = 0.0;
-
     for (size_t i = 0; i < num_bins; ++i) {
         binned_intensities_[i] = static_cast<float>(std::sqrt(bin_squares[i]));
-        total_sum_squares += bin_squares[i];
+    }
+}
+
+void ExperimentalSpectra::normalizeAndScaleIntensities()
+{
+    float magnitude = 0;
+    for (float &i : intensities_)
+    {
+        i = std::sqrt(i);
+        magnitude += i * i;
     }
 
-    float norm_factor = 1.0f / static_cast<float>(std::sqrt(total_sum_squares));
-    for (float& intensity : binned_intensities_) 
+    magnitude = std::sqrt(magnitude);
+
+    for (float &i : intensities_)
     {
-        intensity *= norm_factor;
+        i = i / magnitude;
     }
 }

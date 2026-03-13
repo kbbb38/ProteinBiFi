@@ -15,11 +15,19 @@ LibrarySpectra::LibrarySpectra(const std::string& b, const AppConfig& config) : 
 
     getline(ss, line);
 
-    peptide_ = line.substr(6, std::string::npos);
+    size_t slash_pos = line.find('/');
+
+    peptide_ = line.substr(6, slash_pos - 6);
+    charge_ = stoi(line.substr(slash_pos + 1, 1));
+    
     if (!peptide_.empty() && peptide_.back() == '\r') 
     {
         peptide_.pop_back();  
-    }   
+    }
+
+    getline(ss, line);
+
+    pepmass_ = stof(line.substr(3, std::string::npos));
 
     while (getline(ss, line))
     {
@@ -41,6 +49,7 @@ LibrarySpectra::LibrarySpectra(const std::string& b, const AppConfig& config) : 
     }
 
     createBitSet();
+    normalizeAndScaleIntensities();
     binIntensities();
 }
 
@@ -65,7 +74,7 @@ void LibrarySpectra::createBitSet()
 
 void LibrarySpectra::binIntensities()
 {
-    size_t num_bins = bitset_.size() * 64;
+    size_t num_bins = bitset_.size() * 64 + 1;
     binned_intensities_.resize(num_bins);
 
     std::vector<double> bin_squares(num_bins, 0.0);
@@ -74,23 +83,32 @@ void LibrarySpectra::binIntensities()
         float intensity = intensities_[i];
 
         size_t bin_index = size_t((peak_positions_[i] - BIN_MIN_MZ) / config_.resolution);
-
-        if (bin_index < num_bins) {
-            
+        
+        if (bin_index < num_bins)
+        {
             bin_squares[bin_index] += (float(intensity) * intensity);
         }
     }
 
-    double total_sum_squares = 0.0;
 
     for (size_t i = 0; i < num_bins; ++i) {
         binned_intensities_[i] = static_cast<float>(std::sqrt(bin_squares[i]));
-        total_sum_squares += bin_squares[i];
+    }
+}
+
+void LibrarySpectra::normalizeAndScaleIntensities()
+{
+    float magnitude = 0;
+    for (float &i : intensities_)
+    {
+        i = std::sqrt(i);
+        magnitude += i * i;
     }
 
-    float norm_factor = 1.0f / static_cast<float>(std::sqrt(total_sum_squares));
-    for (float& intensity : binned_intensities_) 
+    magnitude = std::sqrt(magnitude);
+
+    for (float &i : intensities_)
     {
-        intensity *= norm_factor;
+        i = i / magnitude;
     }
 }

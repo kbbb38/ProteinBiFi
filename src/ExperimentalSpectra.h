@@ -22,7 +22,8 @@ struct Match
     std::vector<Hit> dot_product;
 };
 
-class ExperimentalSpectra {
+class ExperimentalSpectra 
+{
 private:
     AppConfig config_;
 
@@ -33,11 +34,14 @@ private:
     std::vector<uint64_t> bitset_;
     std::vector<float> binned_intensities_; 
     u_int64_t bit_count_;
+    int charge_;
+    float pepmass_;
 
     Match match_;
 
     void createBitSet();
     void binIntensities();
+    void normalizeAndScaleIntensities();
     
 public:
     ExperimentalSpectra() = default;
@@ -49,6 +53,8 @@ public:
     const Match getMatch() const { return match_; }
     const std::vector<float>& getIntensities() const { return binned_intensities_; }
     const std::vector<float>& getPeakPositions() const { return peak_positions_; }
+    const int getCharge() const { return charge_; };
+    const float getMass() const { return pepmass_; };
 
     void setName(const std::string& n) { name_ = n; }
     void setBitset(const std::vector<uint64_t>& bs) { bitset_ = bs; }

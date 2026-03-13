@@ -198,7 +198,6 @@ void SpectrumBitSet::matchSpectras()
     
     for (ExperimentalSpectra& e_spec : experimental_spectra_)
     {
-        // Temporary storage for all candidates for this experimental spectrum
         std::vector<Hit> all_candidates;
         all_candidates.reserve(library_spectra_.size());
 
@@ -206,54 +205,49 @@ void SpectrumBitSet::matchSpectras()
 
         for (LibrarySpectra& l_spec : library_spectra_)
         {
-            // Calculate all three scores for every pair
-            float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-            float score_d = calculateDotProductScore(e_spec.getBitset(), e_spec.getIntensities(), l_spec.getBitset(), l_spec.getIntensities());
-            float score_o = calculateOverlapCoefficient(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
+            if(l_spec.getCharge() == e_spec.getCharge() && abs(l_spec.getMass() - e_spec.getMass() < 10))
+            {
+                float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
+                float score_d = calculateDotProductScore(e_spec.getBitset(), e_spec.getIntensities(), l_spec.getBitset(), l_spec.getIntensities());
+                float score_o = calculateOverlapCoefficient(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
 
-            Hit hit;
-            hit.tanimoto_m = score_t;
-            hit.dot_product_m = score_d;
-            hit.overlap_coefficient_m = score_o;
-            hit.peptide_m = l_spec.getPeptide();
-            hit.library_id = index_count;
+                Hit hit;
+                hit.tanimoto_m = score_t;
+                hit.dot_product_m = score_d;
+                hit.overlap_coefficient_m = score_o;
+                hit.peptide_m = l_spec.getPeptide();
+                hit.library_id = index_count;
 
-            all_candidates.push_back(hit);
-            ++index_count;
+                all_candidates.push_back(hit);
+                ++index_count;
+            }
         }
 
-        // Prepare the Match object
         Match match_result;
 
-        // Helper lambda to sort and trim to top 5
         auto processTop5 = [](std::vector<Hit>& candidates, auto compareFunc) {
             std::sort(candidates.begin(), candidates.end(), compareFunc);
             
-            if (candidates.size() > 5) {
-                candidates.resize(5);
+            if (candidates.size() > 20) {
+                candidates.resize(20);
             }
         };
 
-        // 1. Process Tanimoto Top 5
         match_result.hits_tanimoto = all_candidates;
         processTop5(match_result.hits_tanimoto, [](const Hit& a, const Hit& b) {
             return a.tanimoto_m > b.tanimoto_m;
         });
 
-        // 2. Process Overlap Top 5
         match_result.hits_overlap = all_candidates;
         processTop5(match_result.hits_overlap, [](const Hit& a, const Hit& b) {
             return a.overlap_coefficient_m > b.overlap_coefficient_m;
         });
 
-        // 3. Process Dot Product Top 5
         match_result.dot_product = all_candidates;
         processTop5(match_result.dot_product, [](const Hit& a, const Hit& b) {
             return a.dot_product_m > b.dot_product_m;
         });
 
-        // Maintain original side-effect logic: Mark the best Dot Product match as 'matched'
-        // We assume the first element in the sorted dot_product vector is the best
         if (!match_result.dot_product.empty()) {
             size_t best_dot_id = match_result.dot_product[0].library_id;
             if (best_dot_id < library_spectra_.size()) {
@@ -261,7 +255,6 @@ void SpectrumBitSet::matchSpectras()
             }
         }
 
-        // Set the match object to the experimental spectrum
         e_spec.setMatch(match_result);
     }
 }
@@ -338,7 +331,6 @@ void SpectrumBitSet::writeOutput(const std::string& path_string) const
 {
     std::ofstream f(path_string);
     
-    // Write header
     f << "Experimental_Spectrum\tMatch_Type\tRank\tPeptide\tTanimoto\tOverlap\tDot_Product\n";
     
     for (const ExperimentalSpectra& es : experimental_spectra_)

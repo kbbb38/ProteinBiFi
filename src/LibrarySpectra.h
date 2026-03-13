@@ -18,9 +18,12 @@ class LibrarySpectra {
         std::string peptide_;
         u_int64_t bit_count_;
         bool is_a_match_ = false;
+        int charge_;
+        float pepmass_;
 
         void createBitSet();
         void binIntensities();
+        void normalizeAndScaleIntensities();
 
     public:
         LibrarySpectra() = default;
@@ -32,6 +35,8 @@ class LibrarySpectra {
         const bool getIfMatch() const { return is_a_match_; }
         const std::vector<float>& getIntensities() const { return binned_intensities_; }
         const std::vector<float>& getPeakPositions() const { return peak_positions_; }
+        const int getCharge() const {return charge_; };
+        const float getMass() const { return pepmass_; };
 
         void setPeptide(const std::string& n) { peptide_ = n; }
         void setBitset(const std::vector<uint64_t>& bs) { bitset_ = bs; }
