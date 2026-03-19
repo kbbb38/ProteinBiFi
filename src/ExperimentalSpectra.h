@@ -5,21 +5,12 @@
 #include <string>
 #include <vector>
 
-struct Hit
-{
-    float tanimoto_m;
-    float dot_product_m;
-    float overlap_coefficient_m;
-    std::string peptide_m;
-    size_t library_id;
-};
-
-
 struct Match
 {
-    std::vector<Hit> hits_tanimoto;
-    std::vector<Hit> hits_overlap;
-    std::vector<Hit> dot_product;
+    float tanimoto_m;
+    std::string peptide_m;
+    size_t library_id;
+    bool is_initialized_m = false;
 };
 
 class ExperimentalSpectra 

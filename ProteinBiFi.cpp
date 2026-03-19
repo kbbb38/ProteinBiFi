@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 
     std::cout << "-> Filtering and writing output..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
-    sbs.writeOutput(config.output_path, config.experimental_path, ca.getLowest());
+    sbs.writeOutput(config.output_path, config.experimental_path, ca.getMean());
     stop = std::chrono::high_resolution_clock::now();
     durration = duration_cast<std::chrono::seconds>(stop - start);
     std::cout << "-> Done! Took " << durration.count() << " seconds! Filtered " << sbs.filtered() << " spectras!" << std::endl;

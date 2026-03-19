@@ -142,57 +142,32 @@ bool SpectrumBitSet::readEntryIntoBufferMsp(std::ifstream& f, std::string& buffe
     return true;
 }
 
-/* void SpectrumBitSet::matchSpectras()
+void SpectrumBitSet::matchSpectras()
 {
-    size_t total = experimental_spectra_.size();
     for (ExperimentalSpectra& e_spec : experimental_spectra_)
     {
         size_t index_count = 0;
 
-        float highest_o = 0;
-        int highest_id_o = 0;
-
         float highest_t = 0;
         int highest_id_t = 0;
-
-        float highest_d = 0;
-        int highest_id_d = 0;
 
         for (LibrarySpectra& l_spec : library_spectra_)
         {
             float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-            float score_d = calculateDotProductScore(e_spec.getBitset(), e_spec.getIntensities(), l_spec.getBitset(), l_spec.getIntensities());
-            float score_o = calculateOverlapCoefficient(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
 
             if (score_t > highest_t)
             {
                 highest_t = score_t;
                 highest_id_t = index_count;
             }
-
-            if (score_o > highest_o)
-            {
-                highest_o = score_o;
-                highest_id_o = index_count;
-            }
-
-            if (score_d > highest_d)
-            {
-                highest_d = score_d;
-                highest_id_d = index_count;
-            }
-
             ++index_count;
         }
-        std::vector<std::string> matched_peptides = {library_spectra_[highest_id_t].getPeptide(), library_spectra_[highest_id_d].getPeptide(), library_spectra_[highest_id_o].getPeptide()};
-        library_spectra_[highest_id_d].setIfMatch();
-        e_spec.setMatch(Match(highest_t, highest_d, highest_o,
-                                matched_peptides, 
-                                highest_id_d));
+        library_spectra_[highest_id_t].setIfMatch();
+        e_spec.setMatch(Match(highest_t, library_spectra_[highest_id_t].getPeptide(), highest_id_t, true));
     }
-} */
+}
 
-void SpectrumBitSet::matchSpectras()
+/* void SpectrumBitSet::matchSpectras()
 {
     size_t total = experimental_spectra_.size();
     
@@ -257,7 +232,7 @@ void SpectrumBitSet::matchSpectras()
 
         e_spec.setMatch(match_result);
     }
-}
+} */
 
 float SpectrumBitSet::calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const
 {
@@ -325,7 +300,10 @@ void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string
     for (size_t i; i < experimental_spectra_.size(); ++i)
     {
         readEntryIntoBufferMgf(f, buffer);
-        if (experimental_spectra_[i].getMatch().hits_tanimoto[0].tanimoto_m < cutoff) of << buffer;
+        if(experimental_spectra_[i].getMatch().is_initialized_m)
+        {
+            if (experimental_spectra_[i].getMatch().tanimoto_m < cutoff) of << buffer;
+        }
         else total_filtered_ += 1;
     }
 }

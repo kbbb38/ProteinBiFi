@@ -5,11 +5,18 @@
 #include <iostream>
 #include <fstream>
 #include <bit>
+#include <unordered_map>
 
 CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& path_string)
 {
   std::vector<ExperimentalSpectra> exp = sbs.getExpSpec();
   std::vector<LibrarySpectra> lib = sbs.getLibSpec();
+
+  std::unordered_map<std::string, ExperimentalSpectra*> exp_m;
+  std::unordered_map<std::string, LibrarySpectra*> lib_m;
+
+  for (auto& e : exp) exp_m[e.getName()] = &e;
+  for (auto& l : lib) lib_m[l.getPeptide()] = &l;
 
   std::ifstream f(path_string);
   std::string line;
@@ -17,33 +24,25 @@ CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& pat
   getline(f, line);
   std::string id;
   std::string sequence;
+
+  int count;
   while(getline(f, line, '\t'))
   {
     id = line;
     getline(f, line, '\n');
     sequence = line;
 
-    std::vector<uint64_t> bitset_e;
-    std::vector<uint64_t> bitset_l;
-
-    for (auto l : lib)
+    if (exp_m.contains(id) && lib_m.contains(sequence))
     {
-      if (l.getPeptide() == sequence)
-      {
-        for (auto e : exp)
-        {
-          if (e.getName() == id)
-          {
-            float tmp_score = calculateTanimotoScore(e.getBitset(), e.getBitCount(), l.getBitset(), l.getBitCount());
-            if (tmp_score < lowest_score_) lowest_score_ = tmp_score;
-            break;
-          }
-        }
-        break;
-      }
+      float tmp_score = calculateTanimotoScore(exp_m[id]->getBitset(), exp_m[id]->getBitCount(), lib_m[sequence]->getBitset(), lib_m[sequence]->getBitCount());
+      mean_score_ += tmp_score;
+      ++count; 
+      if (tmp_score < lowest_score_) lowest_score_ = tmp_score;
     }
   }
+  mean_score_ /= count;
   std::cout << "Lowest Tanimoto Score: " << lowest_score_ << std::endl;
+  std::cout << "Mean Tanimoto Score: " << mean_score_ << std::endl;
   f.close();
 }
 
