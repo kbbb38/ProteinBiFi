@@ -25,7 +25,7 @@ CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& pat
   std::string id;
   std::string sequence;
 
-  int count;
+  int count = 0;
   while(getline(f, line, '\t'))
   {
     id = line;

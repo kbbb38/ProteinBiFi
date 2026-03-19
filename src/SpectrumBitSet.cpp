@@ -153,12 +153,15 @@ void SpectrumBitSet::matchSpectras()
 
         for (LibrarySpectra& l_spec : library_spectra_)
         {
-            float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-
-            if (score_t > highest_t)
+            if(l_spec.getCharge() == e_spec.getCharge() && abs(l_spec.getMass() - e_spec.getMass() < 10))
             {
-                highest_t = score_t;
-                highest_id_t = index_count;
+                float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
+
+                if (score_t > highest_t)
+                {
+                    highest_t = score_t;
+                    highest_id_t = index_count;
+                }
             }
             ++index_count;
         }
