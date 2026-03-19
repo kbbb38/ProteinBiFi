@@ -23,6 +23,8 @@ add_executable(ProteinBiFi
     src/ExperimentalSpectra.cpp
     src/LibrarySpectra.h
     src/LibrarySpectra.cpp
+    src/CutoffAnalysis.h
+    src/CutoffAnalysis.cpp
     src/Config.h
     src/Constants.h
 )

@@ -1,0 +1,16 @@
+#include "SpectrumBitSet.h"
+
+#include <vector>
+#include <string>
+
+class CutoffAnalysis
+{
+  private:
+    float lowest_score_ = 1;
+
+    float calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const;
+    
+  public:
+    CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& path_string);
+    void analyseWithGroundTruth();
+};

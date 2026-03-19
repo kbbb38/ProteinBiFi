@@ -1,5 +1,6 @@
 #include "src/SpectrumBitSet.h"
 #include "src/Config.h"
+#include "src/CutoffAnalysis.h"
 #include "include/CLI11.hpp"
 
 #include <iostream>
@@ -47,6 +48,14 @@ int main(int argc, char** argv)
     std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << sbs.loaded() << " spectras!" <<std::endl;
     std::cout << " " << std::endl;
 
+    std::cout << "-> Starting cutoff analysis..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    CutoffAnalysis ca(sbs, "/storage/mi/malek01/ForschungsPraktikumRKI/data/fragpipe/human_1/ground_truth.tsv");
+    stop = std::chrono::high_resolution_clock::now();
+    durration = duration_cast<std::chrono::seconds>(stop - start);
+    std::cout << "-> Done! Took " << durration.count() << " seconds!" << std::endl;
+    std::cout << " " << std::endl;
+
     std::cout << "-> Finding matches..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
     sbs.matchSpectras();
@@ -55,7 +64,7 @@ int main(int argc, char** argv)
     std::cout << "-> Done! Took " << durration.count() << " seconds!" << std::endl;
     std::cout << " " << std::endl;
 
-    std::cout << "-> Writing output..." << std::endl;
+    std::cout << "-> Filtering and writing output..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
     sbs.writeOutput(config.output_path);
     stop = std::chrono::high_resolution_clock::now();

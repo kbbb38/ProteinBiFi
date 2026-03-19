@@ -26,6 +26,9 @@ class SpectrumBitSet
         void writeOutput(const std::string& path_string) const;
 
         int loaded() { return total_loaded_; }
+        const std::vector<ExperimentalSpectra>& getExpSpec() const {return experimental_spectra_;}
+        const std::vector<LibrarySpectra>& getLibSpec() const {return library_spectra_;}
+
         
     private:
         std::vector<ExperimentalSpectra> experimental_spectra_;
