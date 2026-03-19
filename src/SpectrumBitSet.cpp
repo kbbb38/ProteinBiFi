@@ -303,10 +303,8 @@ void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string
     for (size_t i; i < experimental_spectra_.size(); ++i)
     {
         readEntryIntoBufferMgf(f, buffer);
-        if(experimental_spectra_[i].getMatch().is_initialized_m)
-        {
-            if (experimental_spectra_[i].getMatch().tanimoto_m < cutoff) of << buffer;
-        }
+
+        if(experimental_spectra_[i].getMatch().is_initialized_m && experimental_spectra_[i].getMatch().tanimoto_m > cutoff) of << buffer;
         else total_filtered_ += 1;
     }
 }
