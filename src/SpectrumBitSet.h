@@ -23,9 +23,10 @@ class SpectrumBitSet
 
         void loadFile(const std::string& path_string);
         void matchSpectras();
-        void writeOutput(const std::string& path_string) const;
+        void writeOutput(const std::string& path_string_out, std::string& path_string_in, const float cutoff);
 
         int loaded() { return total_loaded_; }
+        int filtered() { return total_filtered_; }
         const std::vector<ExperimentalSpectra>& getExpSpec() const {return experimental_spectra_;}
         const std::vector<LibrarySpectra>& getLibSpec() const {return library_spectra_;}
 

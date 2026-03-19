@@ -316,18 +316,21 @@ float SpectrumBitSet::calculateDotProductScore(const std::vector<uint64_t>& e_sp
     return dot;
 }
 
-/* void SpectrumBitSet::writeOutput(const std::string& path_string) const
+void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string& path_string_in, const float cutoff)
 {
-    std::ofstream f(path_string);
-    for (const ExperimentalSpectra& es : experimental_spectra_)
+    std::ifstream f(path_string_in);
+    std::ofstream of(path_string_out);
+    
+    std::string buffer;
+    for (size_t i; i < experimental_spectra_.size(); ++i)
     {
-        Match m = es.getMatch();
-        f << es.getName() << "\t" << m.peptide_m[0] << "\t" << m.tanimoto_m << "\t" << m.peptide_m[1] << "\t" << m.overlap_coefficient_m << "\t" << m.peptide_m[2] << "\t" << m.dot_product_m << "\n"; 
+        readEntryIntoBufferMgf(f, buffer);
+        if (experimental_spectra_[i].getMatch().hits_tanimoto[0].tanimoto_m < cutoff) of << buffer;
+        else total_filtered_ += 1;
     }
-    f.close();
-} */
+}
 
-void SpectrumBitSet::writeOutput(const std::string& path_string) const
+/* void SpectrumBitSet::writeOutput(const std::string& path_string) const
 {
     std::ofstream f(path_string);
     
@@ -386,4 +389,4 @@ void SpectrumBitSet::writeOutput(const std::string& path_string) const
     }
     
     f.close();
-}
+} */

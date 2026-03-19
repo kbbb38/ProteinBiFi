@@ -13,4 +13,5 @@ class CutoffAnalysis
   public:
     CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& path_string);
     void analyseWithGroundTruth();
+    const float getLowest() {return lowest_score_; }
 };

@@ -26,8 +26,6 @@ CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& pat
     std::vector<uint64_t> bitset_e;
     std::vector<uint64_t> bitset_l;
 
-    std::vector<uint64_t> tmp_bitset_l;
-    int tmp_bitcount_l;
     for (auto l : lib)
     {
       if (l.getPeptide() == sequence)
@@ -36,7 +34,7 @@ CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& pat
         {
           if (e.getName() == id)
           {
-            float tmp_score = calculateTanimotoScore(e.getBitset(), e.getBitCount(), tmp_bitset_l = l.getBitset(), l.getBitCount());
+            float tmp_score = calculateTanimotoScore(e.getBitset(), e.getBitCount(), l.getBitset(), l.getBitCount());
             if (tmp_score < lowest_score_) lowest_score_ = tmp_score;
             break;
           }
