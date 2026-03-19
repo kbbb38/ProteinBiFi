@@ -12,7 +12,7 @@ class CutoffAnalysis
     float calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const;
     
   public:
-    CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& path_string);
+    CutoffAnalysis(SpectrumBitSet& sbs, const std::string& path_string);
     void analyseWithGroundTruth();
     const float getLowest() {return lowest_score_; }
     const float getMean() { return mean_score_; }

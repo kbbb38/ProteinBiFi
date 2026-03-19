@@ -35,6 +35,8 @@ private:
     void normalizeAndScaleIntensities();
     
 public:
+    bool is_gt = false;
+
     ExperimentalSpectra() = default;
     ExperimentalSpectra(const std::string& b, const AppConfig& config);
 

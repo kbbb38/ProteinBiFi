@@ -27,8 +27,8 @@ class SpectrumBitSet
 
         int loaded() { return total_loaded_; }
         int filtered() { return total_filtered_; }
-        const std::vector<ExperimentalSpectra>& getExpSpec() const {return experimental_spectra_;}
-        const std::vector<LibrarySpectra>& getLibSpec() const {return library_spectra_;}
+        std::vector<ExperimentalSpectra>& getExpSpec() {return experimental_spectra_;}
+        std::vector<LibrarySpectra>& getLibSpec() {return library_spectra_;}
 
         
     private:

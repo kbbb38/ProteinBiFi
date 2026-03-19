@@ -7,10 +7,10 @@
 #include <bit>
 #include <unordered_map>
 
-CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& path_string)
+CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& path_string)
 {
-  std::vector<ExperimentalSpectra> exp = sbs.getExpSpec();
-  std::vector<LibrarySpectra> lib = sbs.getLibSpec();
+  std::vector<ExperimentalSpectra>& exp = sbs.getExpSpec();
+  std::vector<LibrarySpectra>& lib = sbs.getLibSpec();
 
   std::unordered_map<std::string, ExperimentalSpectra*> exp_m;
   std::unordered_map<std::string, LibrarySpectra*> lib_m;
@@ -19,6 +19,7 @@ CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& pat
   for (auto& l : lib) lib_m[l.getPeptide()] = &l;
 
   std::ifstream f(path_string);
+  std::ofstream of("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/ground_truth.txt");
   std::string line;
 
   getline(f, line);
@@ -38,12 +39,15 @@ CutoffAnalysis::CutoffAnalysis(const SpectrumBitSet& sbs, const std::string& pat
       mean_score_ += tmp_score;
       ++count; 
       if (tmp_score < lowest_score_) lowest_score_ = tmp_score;
+      of << tmp_score << "\n";
+      exp_m[id]->is_gt = true;
     }
   }
   mean_score_ /= count;
   std::cout << "Lowest Tanimoto Score: " << lowest_score_ << std::endl;
   std::cout << "Mean Tanimoto Score: " << mean_score_ << std::endl;
   f.close();
+  of.close();
 }
 
 float CutoffAnalysis::calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const

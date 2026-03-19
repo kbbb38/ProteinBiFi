@@ -290,7 +290,6 @@ float SpectrumBitSet::calculateDotProductScore(const std::vector<uint64_t>& e_sp
             overlap &= (overlap - 1);
         }
     }
-
     return dot;
 }
 
@@ -298,15 +297,30 @@ void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string
 {
     std::ifstream f(path_string_in);
     std::ofstream of(path_string_out);
+    std::ofstream txt1("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/all.txt");
+    std::ofstream txt2("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/not_ground_truth.txt");
     
     std::string buffer;
-    for (size_t i; i < experimental_spectra_.size(); ++i)
+    for (size_t i = 0; i < experimental_spectra_.size(); ++i)
     {
         readEntryIntoBufferMgf(f, buffer);
 
-        if(experimental_spectra_[i].getMatch().is_initialized_m && experimental_spectra_[i].getMatch().tanimoto_m > cutoff) of << buffer;
+        if(experimental_spectra_[i].getMatch().is_initialized_m)
+        {
+            txt1 << experimental_spectra_[i].getMatch().tanimoto_m << "\n";
+            if (experimental_spectra_[i].is_gt) txt2 << experimental_spectra_[i].getMatch().tanimoto_m << "\n";
+        }
+        if(experimental_spectra_[i].getMatch().is_initialized_m && experimental_spectra_[i].getMatch().tanimoto_m > cutoff)
+        {
+            of << buffer;
+        }
         else total_filtered_ += 1;
     }
+
+    f.close();
+    of.close();
+    txt1.close();
+    txt2.close();
 }
 
 /* void SpectrumBitSet::writeOutput(const std::string& path_string) const
