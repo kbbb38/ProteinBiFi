@@ -170,73 +170,6 @@ void SpectrumBitSet::matchSpectras()
     }
 }
 
-/* void SpectrumBitSet::matchSpectras()
-{
-    size_t total = experimental_spectra_.size();
-    
-    for (ExperimentalSpectra& e_spec : experimental_spectra_)
-    {
-        std::vector<Hit> all_candidates;
-        all_candidates.reserve(library_spectra_.size());
-
-        size_t index_count = 0;
-
-        for (LibrarySpectra& l_spec : library_spectra_)
-        {
-            if(l_spec.getCharge() == e_spec.getCharge() && abs(l_spec.getMass() - e_spec.getMass() < 10))
-            {
-                float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-                float score_d = calculateDotProductScore(e_spec.getBitset(), e_spec.getIntensities(), l_spec.getBitset(), l_spec.getIntensities());
-                float score_o = calculateOverlapCoefficient(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-
-                Hit hit;
-                hit.tanimoto_m = score_t;
-                hit.dot_product_m = score_d;
-                hit.overlap_coefficient_m = score_o;
-                hit.peptide_m = l_spec.getPeptide();
-                hit.library_id = index_count;
-
-                all_candidates.push_back(hit);
-                ++index_count;
-            }
-        }
-
-        Match match_result;
-
-        auto processTop5 = [](std::vector<Hit>& candidates, auto compareFunc) {
-            std::sort(candidates.begin(), candidates.end(), compareFunc);
-            
-            if (candidates.size() > 20) {
-                candidates.resize(20);
-            }
-        };
-
-        match_result.hits_tanimoto = all_candidates;
-        processTop5(match_result.hits_tanimoto, [](const Hit& a, const Hit& b) {
-            return a.tanimoto_m > b.tanimoto_m;
-        });
-
-        match_result.hits_overlap = all_candidates;
-        processTop5(match_result.hits_overlap, [](const Hit& a, const Hit& b) {
-            return a.overlap_coefficient_m > b.overlap_coefficient_m;
-        });
-
-        match_result.dot_product = all_candidates;
-        processTop5(match_result.dot_product, [](const Hit& a, const Hit& b) {
-            return a.dot_product_m > b.dot_product_m;
-        });
-
-        if (!match_result.dot_product.empty()) {
-            size_t best_dot_id = match_result.dot_product[0].library_id;
-            if (best_dot_id < library_spectra_.size()) {
-                library_spectra_[best_dot_id].setIfMatch();
-            }
-        }
-
-        e_spec.setMatch(match_result);
-    }
-} */
-
 float SpectrumBitSet::calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const
 {
     uint64_t count_intersection = 0;
@@ -296,9 +229,20 @@ float SpectrumBitSet::calculateDotProductScore(const std::vector<uint64_t>& e_sp
 void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string& path_string_in, const float cutoff)
 {
     std::ifstream f(path_string_in);
-    std::ofstream of(path_string_out);
-    std::ofstream txt1("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/all.txt");
-    std::ofstream txt2("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/not_ground_truth.txt");
+    
+    // Create output filename based on resolution and cutoff value
+    std::string bin_size_str = std::to_string(config_.resolution);
+    // Remove trailing zeros from bin_size string
+    bin_size_str.erase(bin_size_str.find_last_not_of('0') + 1, std::string::npos);
+    if (bin_size_str.back() == '.') bin_size_str.pop_back();
+    
+    std::string filtered_filename = "filtered_spectra_bin_" + bin_size_str + "_cutoff_" + std::to_string(cutoff) + ".mgf";
+    std::string all_scores_filename = "all_tanimoto_scores_bin_" + bin_size_str + ".txt";
+    std::string not_gt_scores_filename = "not_ground_truth_scores_bin_" + bin_size_str + ".txt";
+    
+    std::ofstream of(std::filesystem::path(path_string_out) / filtered_filename);
+    std::ofstream txt1(std::filesystem::path(path_string_out) / all_scores_filename);
+    std::ofstream txt2(std::filesystem::path(path_string_out) / not_gt_scores_filename);
     
     std::string buffer;
     for (size_t i = 0; i < experimental_spectra_.size(); ++i)
@@ -322,64 +266,3 @@ void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string
     txt1.close();
     txt2.close();
 }
-
-/* void SpectrumBitSet::writeOutput(const std::string& path_string) const
-{
-    std::ofstream f(path_string);
-    
-    f << "Experimental_Spectrum\tMatch_Type\tRank\tPeptide\tTanimoto\tOverlap\tDot_Product\n";
-    
-    for (const ExperimentalSpectra& es : experimental_spectra_)
-    {
-        f << "START MATCHES" << "\n";
-
-        Match m = es.getMatch();
-        std::string spec_name = es.getName();
-        
-        // Output top 5 Tanimoto matches
-        for (size_t i = 0; i < m.hits_tanimoto.size(); ++i)
-        {
-            const Hit& hit = m.hits_tanimoto[i];
-            f << spec_name << "\t" 
-              << "Tanimoto" << "\t" 
-              << (i + 1) << "\t" 
-              << hit.peptide_m << "\t" 
-              << hit.tanimoto_m << "\t" 
-              << hit.overlap_coefficient_m << "\t" 
-              << hit.dot_product_m << "\n";
-        }
-
-        f << "\n";
-        
-        // Output top 5 Overlap matches
-        for (size_t i = 0; i < m.hits_overlap.size(); ++i)
-        {
-            const Hit& hit = m.hits_overlap[i];
-            f << spec_name << "\t" 
-              << "Overlap" << "\t" 
-              << (i + 1) << "\t" 
-              << hit.peptide_m << "\t" 
-              << hit.tanimoto_m << "\t" 
-              << hit.overlap_coefficient_m << "\t" 
-              << hit.dot_product_m << "\n";
-        }
-        
-        f << "\n";
-
-        // Output top 5 Dot Product matches
-        for (size_t i = 0; i < m.dot_product.size(); ++i)
-        {
-            const Hit& hit = m.dot_product[i];
-            f << spec_name << "\t" 
-              << "Dot_Product" << "\t" 
-              << (i + 1) << "\t" 
-              << hit.peptide_m << "\t" 
-              << hit.tanimoto_m << "\t" 
-              << hit.overlap_coefficient_m << "\t" 
-              << hit.dot_product_m << "\n";
-        }
-        f << "End MATCHES" << "\n";
-    }
-    
-    f.close();
-} */
