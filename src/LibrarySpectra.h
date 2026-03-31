@@ -7,6 +7,7 @@
 
 class LibrarySpectra {
     private:
+        float best_tanimoto_;
         AppConfig config_;
 
         std::vector<float> peak_positions_;
@@ -18,6 +19,7 @@ class LibrarySpectra {
         std::string peptide_;
         u_int64_t bit_count_;
         bool is_a_match_ = false;
+        bool is_gt_= false;
         int charge_;
         float pepmass_;
 
@@ -26,6 +28,7 @@ class LibrarySpectra {
         void normalizeAndScaleIntensities();
 
     public:
+
         LibrarySpectra() = default;
         LibrarySpectra(const std::string& b, const AppConfig& config);
 
@@ -37,8 +40,12 @@ class LibrarySpectra {
         const std::vector<float>& getPeakPositions() const { return peak_positions_; }
         const int getCharge() const {return charge_; };
         const float getMass() const { return pepmass_; };
+        const float getTanimoto() const { return best_tanimoto_; }
+        const bool getIfGroundTruth() const { return is_gt_; }
 
         void setPeptide(const std::string& n) { peptide_ = n; }
         void setBitset(const std::vector<uint64_t>& bs) { bitset_ = bs; }
         void setIfMatch() { is_a_match_ = true; }
+        void setGroundTruth() { is_gt_ = true; }
+        void setTanimoto(const float new_best) { best_tanimoto_ = new_best; }
 };

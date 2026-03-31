@@ -23,7 +23,7 @@ class SpectrumBitSet
 
         void loadFile(const std::string& path_string);
         void matchSpectras();
-        void writeOutput(const std::string& path_string_out, std::string& path_string_in, const float cutoff);
+        void writeOutput(const std::string& path_string_out);
 
         int loaded() { return total_loaded_; }
         int filtered() { return total_filtered_; }

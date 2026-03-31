@@ -7,7 +7,7 @@
 #include <bit>
 #include <unordered_map>
 
-CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& path_string)
+CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& ground_truth_path, const std::string& output_path)
 {
   std::vector<ExperimentalSpectra>& exp = sbs.getExpSpec();
   std::vector<LibrarySpectra>& lib = sbs.getLibSpec();
@@ -18,36 +18,41 @@ CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& path_stri
   for (auto& e : exp) exp_m[e.getName()] = &e;
   for (auto& l : lib) lib_m[l.getPeptide()] = &l;
 
-  std::ifstream f(path_string);
-  std::ofstream of("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/ground_truth.txt");
+  std::ifstream ground_truth(ground_truth_path);
+  std::ofstream ground_truth_output(output_path + "ground_truth_tanimotos.txt");
   std::string line;
 
-  getline(f, line);
+  getline(ground_truth, line);
   std::string id;
   std::string sequence;
 
   int count = 0;
-  while(getline(f, line, '\t'))
+  while(getline(ground_truth, line, '\t'))
   {
     id = line;
-    getline(f, line, '\n');
+    getline(ground_truth, line, '\n');
     sequence = line;
 
     if (exp_m.contains(id) && lib_m.contains(sequence))
     {
       float tmp_score = calculateTanimotoScore(exp_m[id]->getBitset(), exp_m[id]->getBitCount(), lib_m[sequence]->getBitset(), lib_m[sequence]->getBitCount());
+      if (tmp_score < lowest_score_) lowest_score_ = tmp_score;
+      ground_truth_output << tmp_score << "\n";
+
       mean_score_ += tmp_score;
       ++count; 
-      if (tmp_score < lowest_score_) lowest_score_ = tmp_score;
-      of << tmp_score << "\n";
-      exp_m[id]->is_gt = true;
+      
+      exp_m[id]->setGroundTruth();
+      lib_m[sequence]->setGroundTruth();
     }
   }
   mean_score_ /= count;
+
   std::cout << "Lowest Tanimoto Score: " << lowest_score_ << std::endl;
   std::cout << "Mean Tanimoto Score: " << mean_score_ << std::endl;
-  f.close();
-  of.close();
+
+  ground_truth.close();
+  ground_truth_output.close();
 }
 
 float CutoffAnalysis::calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const

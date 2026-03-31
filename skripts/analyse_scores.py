@@ -11,9 +11,9 @@ def read_floats(filename):
 
 # ================= CONFIGURATION =================
 # Add second file to overlay (leave as None for single plot)
-input_file_1 = '/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/all.txt'
-input_file_2 = None  # ← Set to 'your_file_2.txt' to overlay two densities
-output_file = '/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/all.png'
+input_file_1 = '/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/gt_FDR1_bs1.txt'
+input_file_2 = '/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/all_bs1.txt'  # ← Set to 'your_file_2.txt' to overlay two densities
+output_file = '/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/img/FDR1_bs1_allvsgt.png'
 # =================================================
 
 # Read data
@@ -33,7 +33,7 @@ ax.set_axisbelow(True)
 
 # Color palette (ggplot2 inspired)
 colors = ['#0072B2', '#D55E00']  # Blue and Orange for contrast
-labels = ['Dataset 1', 'Dataset 2']
+labels = ['Ground Truth scores', 'Best scores per library spectra']
 
 # Plot first density
 kde1 = gaussian_kde(data1)

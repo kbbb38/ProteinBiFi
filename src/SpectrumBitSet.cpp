@@ -144,98 +144,29 @@ bool SpectrumBitSet::readEntryIntoBufferMsp(std::ifstream& f, std::string& buffe
 
 void SpectrumBitSet::matchSpectras()
 {
-    for (ExperimentalSpectra& e_spec : experimental_spectra_)
+    for (LibrarySpectra& l_spec : library_spectra_)
     {
         size_t index_count = 0;
 
         float highest_t = 0;
-        int highest_id_t = 0;
 
-        for (LibrarySpectra& l_spec : library_spectra_)
+        for (ExperimentalSpectra& e_spec : experimental_spectra_)
         {
-            if(l_spec.getCharge() == e_spec.getCharge() && abs(l_spec.getMass() - e_spec.getMass() < 10))
+            if(l_spec.getCharge() == e_spec.getCharge())
             {
+                l_spec.setIfMatch();
                 float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
 
                 if (score_t > highest_t)
                 {
                     highest_t = score_t;
-                    highest_id_t = index_count;
                 }
             }
             ++index_count;
         }
-        library_spectra_[highest_id_t].setIfMatch();
-        e_spec.setMatch(Match(highest_t, library_spectra_[highest_id_t].getPeptide(), highest_id_t, true));
+        l_spec.setTanimoto(highest_t);
     }
 }
-
-/* void SpectrumBitSet::matchSpectras()
-{
-    size_t total = experimental_spectra_.size();
-    
-    for (ExperimentalSpectra& e_spec : experimental_spectra_)
-    {
-        std::vector<Hit> all_candidates;
-        all_candidates.reserve(library_spectra_.size());
-
-        size_t index_count = 0;
-
-        for (LibrarySpectra& l_spec : library_spectra_)
-        {
-            if(l_spec.getCharge() == e_spec.getCharge() && abs(l_spec.getMass() - e_spec.getMass() < 10))
-            {
-                float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-                float score_d = calculateDotProductScore(e_spec.getBitset(), e_spec.getIntensities(), l_spec.getBitset(), l_spec.getIntensities());
-                float score_o = calculateOverlapCoefficient(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
-
-                Hit hit;
-                hit.tanimoto_m = score_t;
-                hit.dot_product_m = score_d;
-                hit.overlap_coefficient_m = score_o;
-                hit.peptide_m = l_spec.getPeptide();
-                hit.library_id = index_count;
-
-                all_candidates.push_back(hit);
-                ++index_count;
-            }
-        }
-
-        Match match_result;
-
-        auto processTop5 = [](std::vector<Hit>& candidates, auto compareFunc) {
-            std::sort(candidates.begin(), candidates.end(), compareFunc);
-            
-            if (candidates.size() > 20) {
-                candidates.resize(20);
-            }
-        };
-
-        match_result.hits_tanimoto = all_candidates;
-        processTop5(match_result.hits_tanimoto, [](const Hit& a, const Hit& b) {
-            return a.tanimoto_m > b.tanimoto_m;
-        });
-
-        match_result.hits_overlap = all_candidates;
-        processTop5(match_result.hits_overlap, [](const Hit& a, const Hit& b) {
-            return a.overlap_coefficient_m > b.overlap_coefficient_m;
-        });
-
-        match_result.dot_product = all_candidates;
-        processTop5(match_result.dot_product, [](const Hit& a, const Hit& b) {
-            return a.dot_product_m > b.dot_product_m;
-        });
-
-        if (!match_result.dot_product.empty()) {
-            size_t best_dot_id = match_result.dot_product[0].library_id;
-            if (best_dot_id < library_spectra_.size()) {
-                library_spectra_[best_dot_id].setIfMatch();
-            }
-        }
-
-        e_spec.setMatch(match_result);
-    }
-} */
 
 float SpectrumBitSet::calculateTanimotoScore(const std::vector<uint64_t>& e_spec, const uint64_t e_count, const std::vector<uint64_t>& l_spec, const uint64_t l_count) const
 {
@@ -293,93 +224,25 @@ float SpectrumBitSet::calculateDotProductScore(const std::vector<uint64_t>& e_sp
     return dot;
 }
 
-void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string& path_string_in, const float cutoff)
+void SpectrumBitSet::writeOutput(const std::string& path_string_out)
 {
-    std::ifstream f(path_string_in);
-    std::ofstream of(path_string_out);
-    std::ofstream txt1("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/all.txt");
-    std::ofstream txt2("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/not_ground_truth.txt");
-    
-    std::string buffer;
-    for (size_t i = 0; i < experimental_spectra_.size(); ++i)
+    std::vector<float> cutoff_list = {0.001, 0.005, 0.01, 0.02, 0.04, 0.08, 0.1, 0.12, 0.15, 0.2};
+
+    std::ofstream tanimoto_scores(path_string_out + "all_tanimotos.txt");
+    std::ofstream true_negative_spectras(path_string_out + "true_negative_spectras.tsv");
+
+    for (auto& l : library_spectra_)
     {
-        readEntryIntoBufferMgf(f, buffer);
-
-        if(experimental_spectra_[i].getMatch().is_initialized_m)
-        {
-            txt1 << experimental_spectra_[i].getMatch().tanimoto_m << "\n";
-            if (experimental_spectra_[i].is_gt) txt2 << experimental_spectra_[i].getMatch().tanimoto_m << "\n";
-        }
-        if(experimental_spectra_[i].getMatch().is_initialized_m && experimental_spectra_[i].getMatch().tanimoto_m > cutoff)
-        {
-            of << buffer;
-        }
-        else total_filtered_ += 1;
+        if (!l.getIfMatch()) tanimoto_scores << l.getTanimoto() << "\n";
+        if (!l.getIfGroundTruth()) true_negative_spectras << l.getPeptide() << "\n";
     }
+    tanimoto_scores.close();
+    true_negative_spectras.close();
 
-    f.close();
-    of.close();
-    txt1.close();
-    txt2.close();
+    for (float& c : cutoff_list)
+    {
+        std::ofstream output_spectras(path_string_out + "output_spectra_c" + std::to_string(c) + ".tsv");
+        for (auto& l : library_spectra_) if (l.getIfMatch() && (l.getTanimoto() > c)) output_spectras << l.getPeptide() << "\n";
+        output_spectras.close();
+    }
 }
-
-/* void SpectrumBitSet::writeOutput(const std::string& path_string) const
-{
-    std::ofstream f(path_string);
-    
-    f << "Experimental_Spectrum\tMatch_Type\tRank\tPeptide\tTanimoto\tOverlap\tDot_Product\n";
-    
-    for (const ExperimentalSpectra& es : experimental_spectra_)
-    {
-        f << "START MATCHES" << "\n";
-
-        Match m = es.getMatch();
-        std::string spec_name = es.getName();
-        
-        // Output top 5 Tanimoto matches
-        for (size_t i = 0; i < m.hits_tanimoto.size(); ++i)
-        {
-            const Hit& hit = m.hits_tanimoto[i];
-            f << spec_name << "\t" 
-              << "Tanimoto" << "\t" 
-              << (i + 1) << "\t" 
-              << hit.peptide_m << "\t" 
-              << hit.tanimoto_m << "\t" 
-              << hit.overlap_coefficient_m << "\t" 
-              << hit.dot_product_m << "\n";
-        }
-
-        f << "\n";
-        
-        // Output top 5 Overlap matches
-        for (size_t i = 0; i < m.hits_overlap.size(); ++i)
-        {
-            const Hit& hit = m.hits_overlap[i];
-            f << spec_name << "\t" 
-              << "Overlap" << "\t" 
-              << (i + 1) << "\t" 
-              << hit.peptide_m << "\t" 
-              << hit.tanimoto_m << "\t" 
-              << hit.overlap_coefficient_m << "\t" 
-              << hit.dot_product_m << "\n";
-        }
-        
-        f << "\n";
-
-        // Output top 5 Dot Product matches
-        for (size_t i = 0; i < m.dot_product.size(); ++i)
-        {
-            const Hit& hit = m.dot_product[i];
-            f << spec_name << "\t" 
-              << "Dot_Product" << "\t" 
-              << (i + 1) << "\t" 
-              << hit.peptide_m << "\t" 
-              << hit.tanimoto_m << "\t" 
-              << hit.overlap_coefficient_m << "\t" 
-              << hit.dot_product_m << "\n";
-        }
-        f << "End MATCHES" << "\n";
-    }
-    
-    f.close();
-} */
