@@ -6,8 +6,9 @@
 #include <fstream>
 #include <bit>
 #include <unordered_map>
+#include <filesystem>
 
-CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& path_string)
+CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& path_string, const std::string& output_path, const float resolution)
 {
   std::vector<ExperimentalSpectra>& exp = sbs.getExpSpec();
   std::vector<LibrarySpectra>& lib = sbs.getLibSpec();
@@ -19,7 +20,11 @@ CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& path_stri
   for (auto& l : lib) lib_m[l.getPeptide()] = &l;
 
   std::ifstream f(path_string);
-  std::ofstream of("/storage/mi/malek01/ForschungsPraktikumRKI/data/human/tanimoto_scores/ground_truth.txt");
+  
+  // Create output filename based on resolution
+  std::string scores_filename = "tanimoto_scores_res_" + std::to_string(resolution) + ".txt";
+  std::ofstream of(std::filesystem::path(output_path) / scores_filename);
+  
   std::string line;
 
   getline(f, line);

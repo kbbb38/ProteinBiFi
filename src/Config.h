@@ -8,5 +8,6 @@ struct AppConfig
     std::string library_path;
     std::string experimental_path;
     std::string output_path;
+    std::string ground_truth_path;
     float resolution;
 };

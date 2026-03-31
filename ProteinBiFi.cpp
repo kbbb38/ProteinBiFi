@@ -6,6 +6,7 @@
 #include <iostream>
 #include <chrono>
 #include <string>
+#include <filesystem>
 
 int main(int argc, char** argv)
 {
@@ -21,9 +22,13 @@ int main(int argc, char** argv)
     app.add_option("-e, --experimental", config.experimental_path, "Path to experimental file or directory")->required();
     app.add_option("-o, --out", config.output_path, "Output directory")->required();
     app.add_option("-r, --resolution", config.resolution, "Resolution fo the bit sets")->required();
+    app.add_option("-g, --ground_truth", config.ground_truth_path, "Path to ground truth file for cutoff analysis");
     app.add_flag("-f, --filter_experimental", config.filter_experimental, "Filter experimental spectras instead of spectras in the seach library");
 
     app.parse(argc, argv);
+
+    // Create output directory if it doesn't exist
+    std::filesystem::create_directories(config.output_path);
 
     std::cout << "\033[1;32m"; 
     std::cout << "╔════════════════════╗" << std::endl;
@@ -48,13 +53,18 @@ int main(int argc, char** argv)
     std::cout << "-> Done! Took " << durration.count() << " seconds! Loaded " << sbs.loaded() << " spectras!" <<std::endl;
     std::cout << " " << std::endl;
 
-    std::cout << "-> Starting cutoff analysis..." << std::endl;
-    start = std::chrono::high_resolution_clock::now();
-    CutoffAnalysis ca(sbs, "/storage/mi/malek01/ForschungsPraktikumRKI/data/fragpipe/human_1/ground_truth.tsv");
-    stop = std::chrono::high_resolution_clock::now();
-    durration = duration_cast<std::chrono::seconds>(stop - start);
-    std::cout << "-> Done! Took " << durration.count() << " seconds!" << std::endl;
-    std::cout << " " << std::endl;
+    float cutoff = 0.0f;
+    if (!config.ground_truth_path.empty())
+    {
+        std::cout << "-> Starting cutoff analysis..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        CutoffAnalysis ca(sbs, config.ground_truth_path, config.output_path, config.resolution);
+        stop = std::chrono::high_resolution_clock::now();
+        durration = duration_cast<std::chrono::seconds>(stop - start);
+        std::cout << "-> Done! Took " << durration.count() << " seconds!" << std::endl;
+        std::cout << " " << std::endl;
+        cutoff = ca.getMean();
+    }
 
     std::cout << "-> Finding matches..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
@@ -66,7 +76,7 @@ int main(int argc, char** argv)
 
     std::cout << "-> Filtering and writing output..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
-    sbs.writeOutput(config.output_path, config.experimental_path, ca.getMean());
+    sbs.writeOutput(config.output_path, config.experimental_path, cutoff);
     stop = std::chrono::high_resolution_clock::now();
     durration = duration_cast<std::chrono::seconds>(stop - start);
     std::cout << "-> Done! Took " << durration.count() << " seconds! Filtered " << sbs.filtered() << " spectras!" << std::endl;
