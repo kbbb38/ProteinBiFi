@@ -27,6 +27,7 @@ private:
     u_int64_t bit_count_;
     int charge_;
     float pepmass_;
+    bool is_gt_ = false;
 
     Match match_;
 
@@ -35,7 +36,6 @@ private:
     void normalizeAndScaleIntensities();
     
 public:
-    bool is_gt = false;
 
     ExperimentalSpectra() = default;
     ExperimentalSpectra(const std::string& b, const AppConfig& config);
@@ -52,4 +52,5 @@ public:
     void setName(const std::string& n) { name_ = n; }
     void setBitset(const std::vector<uint64_t>& bs) { bitset_ = bs; }
     void setMatch(const Match& m) {match_ = m; }
+    void setGroundTruth() {is_gt_ = true;}
 };

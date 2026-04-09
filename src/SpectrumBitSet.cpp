@@ -144,29 +144,27 @@ bool SpectrumBitSet::readEntryIntoBufferMsp(std::ifstream& f, std::string& buffe
 
 void SpectrumBitSet::matchSpectras()
 {
-    for (ExperimentalSpectra& e_spec : experimental_spectra_)
+    for (LibrarySpectra& l_spec : library_spectra_)
     {
         size_t index_count = 0;
 
         float highest_t = 0;
-        int highest_id_t = 0;
 
-        for (LibrarySpectra& l_spec : library_spectra_)
+        for (ExperimentalSpectra& e_spec : experimental_spectra_)
         {
-            if(l_spec.getCharge() == e_spec.getCharge() && abs(l_spec.getMass() - e_spec.getMass() < 10))
+            if(l_spec.getCharge() == e_spec.getCharge())
             {
+                l_spec.setIfMatch();
                 float score_t = calculateTanimotoScore(e_spec.getBitset(), e_spec.getBitCount(), l_spec.getBitset(), l_spec.getBitCount());
 
                 if (score_t > highest_t)
                 {
                     highest_t = score_t;
-                    highest_id_t = index_count;
                 }
             }
             ++index_count;
         }
-        library_spectra_[highest_id_t].setIfMatch();
-        e_spec.setMatch(Match(highest_t, library_spectra_[highest_id_t].getPeptide(), highest_id_t, true));
+        l_spec.setTanimoto(highest_t);
     }
 }
 
@@ -226,43 +224,25 @@ float SpectrumBitSet::calculateDotProductScore(const std::vector<uint64_t>& e_sp
     return dot;
 }
 
-void SpectrumBitSet::writeOutput(const std::string& path_string_out, std::string& path_string_in, const float cutoff)
+void SpectrumBitSet::writeOutput(const std::string& path_string_out)
 {
-    std::ifstream f(path_string_in);
-    
-    // Create output filename based on resolution and cutoff value
-    std::string bin_size_str = std::to_string(config_.resolution);
-    // Remove trailing zeros from bin_size string
-    bin_size_str.erase(bin_size_str.find_last_not_of('0') + 1, std::string::npos);
-    if (bin_size_str.back() == '.') bin_size_str.pop_back();
-    
-    std::string filtered_filename = "filtered_spectra_bin_" + bin_size_str + "_cutoff_" + std::to_string(cutoff) + ".mgf";
-    std::string all_scores_filename = "all_tanimoto_scores_bin_" + bin_size_str + ".txt";
-    std::string not_gt_scores_filename = "not_ground_truth_scores_bin_" + bin_size_str + ".txt";
-    
-    std::ofstream of(std::filesystem::path(path_string_out) / filtered_filename);
-    std::ofstream txt1(std::filesystem::path(path_string_out) / all_scores_filename);
-    std::ofstream txt2(std::filesystem::path(path_string_out) / not_gt_scores_filename);
-    
-    std::string buffer;
-    for (size_t i = 0; i < experimental_spectra_.size(); ++i)
+    std::vector<float> cutoff_list = {0.001, 0.005, 0.01, 0.02, 0.04, 0.08, 0.1, 0.12, 0.15, 0.2};
+
+    std::ofstream tanimoto_scores(path_string_out + "all_tanimotos.txt");
+    std::ofstream true_negative_spectras(path_string_out + "true_negative_spectras.tsv");
+
+    for (auto& l : library_spectra_)
     {
-        readEntryIntoBufferMgf(f, buffer);
-
-        if(experimental_spectra_[i].getMatch().is_initialized_m)
-        {
-            txt1 << experimental_spectra_[i].getMatch().tanimoto_m << "\n";
-            if (experimental_spectra_[i].is_gt) txt2 << experimental_spectra_[i].getMatch().tanimoto_m << "\n";
-        }
-        if(experimental_spectra_[i].getMatch().is_initialized_m && experimental_spectra_[i].getMatch().tanimoto_m > cutoff)
-        {
-            of << buffer;
-        }
-        else total_filtered_ += 1;
+        if (!l.getIfMatch()) tanimoto_scores << l.getTanimoto() << "\n";
+        if (!l.getIfGroundTruth()) true_negative_spectras << l.getPeptide() << "\n";
     }
+    tanimoto_scores.close();
+    true_negative_spectras.close();
 
-    f.close();
-    of.close();
-    txt1.close();
-    txt2.close();
+    for (float& c : cutoff_list)
+    {
+        std::ofstream output_spectras(path_string_out + "output_spectra_c" + std::to_string(c) + ".tsv");
+        for (auto& l : library_spectra_) if (l.getIfMatch() && (l.getTanimoto() > c)) output_spectras << l.getPeptide() << "\n";
+        output_spectras.close();
+    }
 }

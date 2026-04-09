@@ -2,7 +2,7 @@ import pandas as pd
 import re
 
 # Read the TSV file
-df = pd.read_csv("/storage/mi/malek01/ForschungsPraktikumRKI/data/fragpipe/human_1/ground_truth.tsv", sep="\t")
+df = pd.read_csv("/storage/mi/malek01/ForschungsPraktikumRKI/data/fragpipe/human5_1/ground_truth.tsv", sep="\t")
 
 # Convert SpecId to Thermo format
 def convert_to_thermo_id(spec_id):
@@ -18,7 +18,7 @@ def convert_to_thermo_id(spec_id):
 df["Spectrum"] = df["Spectrum"].apply(convert_to_thermo_id)
 
 # Save back to TSV
-df.to_csv("/storage/mi/malek01/ForschungsPraktikumRKI/data/fragpipe/human_1/ground_truth.tsv", sep="\t", index=False)
+df.to_csv("/storage/mi/malek01/ForschungsPraktikumRKI/data/fragpipe/human5_1/ground_truth.tsv", sep="\t", index=False)
 
 print(f"Converted {len(df)} entries")
 print(f"Example: {df['Spectrum'].iloc[0]}")
