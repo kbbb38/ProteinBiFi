@@ -6,6 +6,7 @@
 #include <iostream>
 #include <chrono>
 #include <string>
+#include <filesystem>
 
 int main(int argc, char** argv)
 {
@@ -25,6 +26,9 @@ int main(int argc, char** argv)
     app.add_option("-g, --ground-truth", config.ground_truth_path, "Path to ground truth file")->required();
 
     app.parse(argc, argv);
+
+    // Create output directory if it doesn't exist
+    std::filesystem::create_directories(config.output_path);
 
     std::cout << "\033[1;32m"; 
     std::cout << "╔════════════════════╗" << std::endl;

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <bit>
 #include <unordered_map>
+#include <filesystem>
 
 CutoffAnalysis::CutoffAnalysis(SpectrumBitSet& sbs, const std::string& ground_truth_path, const std::string& output_path)
 {
