@@ -169,15 +169,3 @@ cd build
 cmake -DENABLE_ASAN=ON ..
 make -j$(nproc)
 ```
-
-## License
-
-This project uses [CLI11](https://github.com/CLIUtils/CLI11) for command-line parsing (BSD-3-Clause license).
-
-## Citation
-
-If you use ProteinBiFi in your research, please cite appropriately.
-
-## Contact
-
-For issues, questions, or contributions, please open an issue on the project repository.
